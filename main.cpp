@@ -5,6 +5,7 @@
 #include <regex>    // Žodžių valymui
 #include <vector>   // Vector konteineriui
 #include <sstream>  // String stream eilutėms skaityti
+#include <set>      // Set'ui
 
 using namespace std;
 
@@ -34,17 +35,16 @@ map<string,int> ZodziuDazniai(const string& failas) {
 //2 UŽDUOTIS
 // Cross-reference: kuriose eilutėse yra minimi pasikartojantys žodžiai
 map<string,vector<int>> CrossRef(const string& failas) {
-    map<string,vector<int>> m;          // žodis -> eilučių numeriai
+    map<string,vector<int>> m;
     ifstream fin(failas);
     string line;
-    int nr = 1;                         // eilutės numeris (pradedam nuo 1)
+    int nr = 1;
     while (getline(fin, line)) {
         istringstream iss(line);
         string zodis;
         while (iss >> zodis) {
             string val = CleanWord(zodis);
             if (!val.empty()) {
-                // Įtraukiame tik unikalius eilutės numerius
                 if (m[val].empty() || m[val].back() != nr)
                     m[val].push_back(nr);
             }
@@ -54,7 +54,6 @@ map<string,vector<int>> CrossRef(const string& failas) {
     return m;
 }
 
-// Išvedimas į failą
 void IsvestiCrossRef(const map<string,vector<int>>& cr, const map<string,int>& dazniai) {
     ofstream out("cross-reference.txt");
     for(auto &p : cr) 
@@ -66,6 +65,41 @@ void IsvestiCrossRef(const map<string,vector<int>>& cr, const map<string,int>& d
             }
             out << "\n";
         }
+}
+
+//3 UŽDUOTIS
+// URL paieška
+set<string> RastiURL(const string& failas) {
+    set<string> urls;
+    ifstream fin(failas);
+    string line;
+    
+    // Vienas regex visiems URL formatams
+    regex urlPattern(R"((https?://|www\.)?[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(/[^\s]*)?)");
+    
+    while (getline(fin, line)) {
+        auto begin = sregex_iterator(line.begin(), line.end(), urlPattern);
+        auto end = sregex_iterator();
+        
+        for (auto it = begin; it != end; ++it) {
+            string url = it->str();
+            if (!url.empty() && url.back() == '.') {
+                url.pop_back();
+            }
+            urls.insert(url);
+        }
+    }
+    
+    return urls;
+}
+
+void IsvestiURL(const set<string>& urls) {
+    ofstream out("url_sarasas.txt");
+    int nr = 1;
+    for(const auto& url : urls) {
+        out << nr << ". " << url << "\n";
+        nr++;
+    }
 }
 
 int main() {
@@ -82,5 +116,8 @@ int main() {
     
     auto crossReference = CrossRef(failas);
     IsvestiCrossRef(crossReference, dazniai);
+
+    auto urls = RastiURL(failas);
+    IsvestiURL(urls);
     cout << "Analize baigta\n";
 }
