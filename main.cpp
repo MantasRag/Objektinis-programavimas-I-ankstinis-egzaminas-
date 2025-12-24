@@ -32,6 +32,17 @@ map<string,int> ZodziuDazniai(const string& failas) {
     return m;
 }
 
+void IsvestiZodziuDaznius(const map<string,int>& dazniai) {
+    ofstream out("zodziu_daznis.txt");
+    out << "Žodis, pasikartojimų skaičius\n";
+    out << "---------------\n";
+    for(auto &p : dazniai) {
+        if(p.second > 1) {
+            out << p.first << " " << p.second << "\n";
+        }
+    }
+}
+
 //2 UŽDUOTIS
 // Cross-reference: kuriose eilutėse yra minimi pasikartojantys žodžiai
 map<string,vector<int>> CrossRef(const string& failas) {
@@ -56,6 +67,8 @@ map<string,vector<int>> CrossRef(const string& failas) {
 
 void IsvestiCrossRef(const map<string,vector<int>>& cr, const map<string,int>& dazniai) {
     ofstream out("cross-reference.txt");
+    out << "Žodis, eilučių, kuriose jis paminėtas numeriai\n";
+    out << "---------------\n";
     for(auto &p : cr) 
         if(dazniai.find(p.first) != dazniai.end() && dazniai.at(p.first) > 1) {
             out << p.first << " : ";
@@ -96,23 +109,34 @@ set<string> RastiURL(const string& failas) {
 void IsvestiURL(const set<string>& urls) {
     ofstream out("url_sarasas.txt");
     int nr = 1;
+    out << "URL sąrašas\n";
+    out << "---------------\n";
     for(const auto& url : urls) {
         out << nr << ". " << url << "\n";
         nr++;
     }
 }
 
-int main() {
+string GautiFaila() {
     string failas;
-    cout << "Iveskite faila: ";
-    cin >> failas;
+    while (true) {
+        cout << "Iveskite faila: ";
+        cin >> failas;
+        ifstream aregzistuoja(failas);
+        if (aregzistuoja.good()) {
+            aregzistuoja.close();
+            return failas;
+        }
+        
+        cout << "Failas nerastas. Ivesti failo pavadinima is naujo.\n";
+    }
+}
+
+int main() {
+    string failas=GautiFaila();
 
     auto dazniai = ZodziuDazniai(failas);
-
-    ofstream out("zodziu_daznis.txt");
-    for(auto &p : dazniai)
-        if(p.second > 1)
-            out << p.first << " " << p.second << "\n";
+    IsvestiZodziuDaznius(dazniai);
     
     auto crossReference = CrossRef(failas);
     IsvestiCrossRef(crossReference, dazniai);
